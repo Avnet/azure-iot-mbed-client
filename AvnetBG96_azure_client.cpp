@@ -69,10 +69,10 @@ static const char* deviceId         = "xxxx"; /*must match the one on connection
 
 #define CTOF(x)         (((double)(x)*9/5)+32)
 
-Thread azure_client_thread(osPriorityNormal, 16*1024, NULL, "azure_client_thread");
+Thread azure_client_thread(osPriorityNormal, 8*1024, NULL, "azure_client_thread");
 static void azure_task(void);
 
-Thread LED_thread(osPriorityNormal, 512, NULL, "LED_thread");
+Thread LED_thread(osPriorityNormal, 256, NULL, "LED_thread");
 static void LED_task(void);
 
 /* LED Management */
@@ -126,13 +126,16 @@ static void LED_task(void)
 
 
 /* Button callbacks for a press and release (light an LED) */
+static bool button_pressed = false;
 void ub_press(void)
 {
+    button_pressed = true;
     SET_LED(RED,LED_ON);
 }
 
 void ub_release(int x)
 {
+    button_pressed = false;
     SET_LED(RED,LED_OFF);
 }
 
@@ -370,6 +373,7 @@ void azure_task(void)
             iotDev->Tilt |= 1;
             }
 
+        iotDev->ButtonPress = button_pressed?1:0;
         if( user_button.chkButton_press(&k) ) {
             if( k > 3000 ) {
                 printf("User Requested Termination (held button for %d msec), exiting.\n",k);
