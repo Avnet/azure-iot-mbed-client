@@ -59,7 +59,7 @@ class Button {
             {
             // The user button is setup for the edge to generate an interrupt. 
             // The release is caught an event queue callback
-            button_thread=new Thread(osPriorityNormal,512,NULL,"button_thread");
+            button_thread=new Thread(osPriorityNormal,256,NULL,"button_thread");
             button_thread->start(callback(&button_queue, &EventQueue::dispatch_forever));
             if( s == ActiveHigh ) {
                 user_button.rise( Callback<void()>(this, &Button::button_press_handler) ); 
@@ -69,6 +69,11 @@ class Button {
                 user_button.fall( Callback<void()>(this, &Button::button_press_handler) );
                 user_button.rise(button_queue.event(Callback<void()>(this, &Button::button_release_handler)));
                 }
+            }
+
+        ~Button() {
+            button_thread->terminate();
+            delete button_thread;
             }
 
         // will return the number of times the button has been pressed (if it was pressed > 1 time before checked)
