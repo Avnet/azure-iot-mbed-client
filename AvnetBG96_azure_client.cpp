@@ -49,18 +49,18 @@ typedef struct IoTDevice_t {
 #if MBED_CONF_APP_IKSVERSION == 2
   #define ENV_SENSOR "IKS01A2"
   #include "XNucleoIKS01A2.h"
-  static XNucleoIKS01A2 *mems_expansion_board = XNucleoIKS01A2::instance(D14, D15, D4, D5);
-  static HTS221Sensor  *hum_temp   = mems_expansion_board->ht_sensor;
-  static LSM6DSLSensor *acc_gyro   = mems_expansion_board->acc_gyro;
-  static LPS22HBSensor *pressure   = mems_expansion_board->pt_sensor;
-#else
+  static HTS221Sensor   *hum_temp;
+  static LSM6DSLSensor  *acc_gyro;
+  static LPS22HBSensor  *pressure;
+#elif MBED_CONF_APP_IKSVERSION == 1
   #define ENV_SENSOR "IKS01A1"
   #include "x_nucleo_iks01a1.h"
-  static X_NUCLEO_IKS01A1 *mems_expansion_board = X_NUCLEO_IKS01A1::Instance(D14,D15);
-  static HumiditySensor      *hum = mems_expansion_board->ht_sensor;
-  static TempSensor         *temp = mems_expansion_board->ht_sensor;
-  static PressureSensor *pressure = mems_expansion_board->pt_sensor;
-  static GyroSensor     *acc_gyro = mems_expansion_board->GetGyroscope();
+  static HumiditySensor *hum;
+  static TempSensor     *temp;
+  static PressureSensor *pressure;
+  static GyroSensor     *acc_gyro;
+#else
+  #define ENV_SENSOR "NO"
 #endif
 
 static const char* connectionString = "HostName=XXXX;DeviceId=xxxx;SharedAccessKey=xxxx";
@@ -186,6 +186,19 @@ int main(void)
        printf("Error initializing the platform\r\n");
        return -1;
        }
+
+#if MBED_CONF_APP_IKSVERSION == 2
+  XNucleoIKS01A2 *mems_expansion_board = XNucleoIKS01A2::instance(I2C_SDA, I2C_SCL, D4, D5);
+  hum_temp = mems_expansion_board->ht_sensor;
+  acc_gyro = mems_expansion_board->acc_gyro;
+  pressure = mems_expansion_board->pt_sensor;
+#elif MBED_CONF_APP_IKSVERSION == 1
+  X_NUCLEO_IKS01A1 *mems_expansion_board = X_NUCLEO_IKS01A1::Instance(I2C_SDA, I2C_SCL);
+  hum      = mems_expansion_board->ht_sensor;
+  temp     = mems_expansion_board->ht_sensor;
+  pressure = mems_expansion_board->pt_sensor;
+  acc_gyro = mems_expansion_board->GetGyroscope();
+#endif
 
     mems_init();
     LED_thread.start(LED_task);
@@ -358,10 +371,14 @@ void azure_task(void)
         hum_temp->get_temperature(&gtemp);           // get Temp
         hum_temp->get_humidity(&ghumid);             // get Humidity
         pressure->get_pressure(&gpress);             // get pressure
-#else
+#elif MBED_CONF_APP_IKSVERSION == 1
         CALL_METH(temp, get_temperature, &gtemp, 0.0f);
         CALL_METH(hum, get_humidity, &ghumid, 0.0f);
         CALL_METH(pressure, get_pressure, &gpress, 0.0f);
+#else
+        gtemp  = 0.0;
+        ghumid = 0.0;
+        gpress = 0.0;
 #endif
 
         iotDev->Temperature = CTOF(gtemp);
