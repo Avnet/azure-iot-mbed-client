@@ -5,7 +5,7 @@ Generally speaking, there are two steps necessary to exercise this example code:
 1. Setting up and configuring an Azure IoT Hub
 2. Creating the IoT Client code and running it on the IoT End Device
 
-This repository focues on step #2.  To learn more about step #1 refer to the Element14 blog post **[Element14 Web Site]**(https://www.element14.com/community/groups/mbed/blog/2018/09/21/implementing-an-azure-iot-client-using-the-mbed-os-part-1) or any of the [Microsoft examples](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-get-started-physical).
+This repository focues on step #2.  To learn more about step #1 refer to the Element14 blog post [Element14 Web Site](https://www.element14.com/community/groups/mbed/blog/2018/09/21/implementing-an-azure-iot-client-using-the-mbed-os-part-1) or any of the [Microsoft examples](https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-get-started-physical).
 
 
 # Hardware Used
