@@ -1,5 +1,6 @@
 {
     "macros": [
+        "DEFAULT_APN=\"m2m-east.telus.iot\"",
         "NDEBUG=1",
         "BG96_LIBRARY_READ_TIMEOUTMS=30000"
     ],
@@ -15,6 +16,10 @@
         "button_active_state": {
             "help": "define the active state of the user pushbutton, either ActiveHigh or ActiveLow",
             "value": "ActiveHigh"
+        },
+        "teluskit": {
+            "help" : "if this kit is a Telus IoT Kit, set this to 1, otherwise to 0",
+            "value": 1
         },
         "iksversion": {
             "help" : "define the sensor board used either IKS01A2 (value=2) or IKS01A1 (value=1)",

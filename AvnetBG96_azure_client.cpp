@@ -328,6 +328,11 @@ void azure_task(void)
     if (IoTHubClient_LL_SetOption(iotHubClientHandle, "TrustedCerts", certificates) != IOTHUB_CLIENT_OK)
         printf("failure to set option \"TrustedCerts\"\r\n");
 
+#if MBED_CONF_APP_TELUSKIT == 1
+    if (IoTHubClient_LL_SetOption(iotHubClientHandle, "product_info", "TELUSIOTKIT") != IOTHUB_CLIENT_OK)
+        printf("failure to set option \"product_info\"\r\n");
+#endif
+
     // polls will happen effectively at ~10 seconds.  The default value of minimumPollingTime is 25 minutes. 
     // For more information, see:
     //     https://azure.microsoft.com/documentation/articles/iot-hub-devguide/#messaging
