@@ -44,7 +44,7 @@ To build the Sample program, you must use the mbed command line tools (mbed-cli)
 5.  Build the program by executing the command: 
 >     **mbed compile -m NUCLEO_L496ZG -t GCC_ARM --profile toolchain_debug.json**
 
-6.  The executable program will be located at: **BUILD/NUCLEO_L476RG/GCC_ARM/BluemixQS_BG96.bin** 
+6.  The executable program will be located at: **BUILD/NUCLEO_L496ZG/GCC_ARM-TOOLCHAIN_DEBUG/azure-iot-mbed-client.bin** 
 
 7.  Copy the executable program the Nucleo board that is connected to your PC, and once copied, press the reset button.
 # Execution Output
