@@ -1,9 +1,15 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+//#define USE_MQTT
+
 #include <stdlib.h>
 #include "mbed.h"
+#ifdef USE_MQTT
+#include "iothubtransportmqtt.h"
+#else
 #include "iothubtransporthttp.h"
+#endif
 #include "iothub_client_core_common.h"
 #include "iothub_client_ll.h"
 #include "azure_c_shared_utility/platform.h"
@@ -36,11 +42,11 @@ typedef struct IoTDevice_t {
      "\"ObjectType\":\"%s\","      \
      "\"Version\":\"%s\","         \
      "\"ReportingDevice\":\"%s\"," \
-     "\"Temperature\":%.02f,"      \
-     "\"Humidity\":%d,"            \
-     "\"Pressure\":%d,"            \
-     "\"Tilt\":%d,"                \
-     "\"ButtonPress\":%d,"         \
+     "\"Temperature\":\"%.02f\","  \
+     "\"Humidity\":\"%d\","        \
+     "\"Pressure\":\"%d\","        \
+     "\"Tilt\":\"%d\","            \
+     "\"ButtonPress\":\"%d\","     \
      "\"TOD\":\"%s UTC\""          \
    "}"                             
 
@@ -64,10 +70,11 @@ typedef struct IoTDevice_t {
 #endif
 
 static const char* connectionString = "HostName=XXXX;DeviceId=xxxx;SharedAccessKey=xxxx";
-
+ 
 static const char* deviceId         = "xxxx"; /*must match the one on connectionString*/
 
-#define CTOF(x)         (((double)(x)*9/5)+32)
+// to report F uncomment this #define CTOF(x)         (((double)(x)*9/5)+32)
+#define CTOF(x)         (x)
 
 Thread azure_client_thread(osPriorityNormal, 8*1024, NULL, "azure_client_thread");
 static void azure_task(void);
@@ -180,6 +187,11 @@ int main(void)
     printf("The example program interacts with Azure IoTHub sending \r\n");
     printf("sensor data and receiving messeages (using ARM Mbed OS v5.x)\r\n");
     printf("[using %s Environmental Sensor]\r\n", ENV_SENSOR);
+#ifdef IOTHUBTRANSPORTHTTP_H
+    printf("[using HTTPS Transport Protocol]\r\n");
+#else
+    printf("[using MQTT Transport Protocol]\r\n");
+#endif
     printf("\r\n");
 
     if (platform_init() != 0) {
@@ -318,7 +330,12 @@ void azure_task(void)
     SET_LED(GREEN,LED_ON);
 
     /* Setup IoTHub client configuration */
+#ifdef IOTHUBTRANSPORTHTTP_H
     IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, HTTP_Protocol);
+#else
+    IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, MQTT_Protocol);
+#endif
+
     if (iotHubClientHandle == NULL) {
         printf("Failed on IoTHubClient_Create\r\n");
         return;
@@ -333,6 +350,7 @@ void azure_task(void)
         printf("failure to set option \"product_info\"\r\n");
 #endif
 
+#ifdef IOTHUBTRANSPORTHTTP_H
     // polls will happen effectively at ~10 seconds.  The default value of minimumPollingTime is 25 minutes. 
     // For more information, see:
     //     https://azure.microsoft.com/documentation/articles/iot-hub-devguide/#messaging
@@ -340,6 +358,7 @@ void azure_task(void)
     unsigned int minimumPollingTime = 9;
     if (IoTHubClient_LL_SetOption(iotHubClientHandle, "MinimumPollingTime", &minimumPollingTime) != IOTHUB_CLIENT_OK)
         printf("failure to set option \"MinimumPollingTime\"\r\n");
+#endif
 
     IoTDevice* iotDev = (IoTDevice*)malloc(sizeof(IoTDevice));
     if (iotDev == NULL) {
