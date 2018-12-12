@@ -18,7 +18,7 @@
 #include "bg96gps.hpp"
 #include "button.hpp"
 
-#define APP_VERSION "1.0"
+#define APP_VERSION "1.1"
 #define IOT_AGENT_OK CODEFIRST_OK
 
 #include "azure_certs.h"
