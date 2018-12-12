@@ -15,6 +15,7 @@
 #include "azure_c_shared_utility/platform.h"
 #include "azure_c_shared_utility/agenttime.h"
 #include "jsondecoder.h"
+#include "bg96gps.hpp"
 #include "button.hpp"
 
 #define APP_VERSION "1.0"
@@ -28,6 +29,10 @@ typedef struct IoTDevice_t {
     char* ObjectType;
     char* Version;
     char* ReportingDevice;
+    float lat;
+    float lon;
+    float gpstime;
+    char  gpsdate[7];
     float Temperature;
     int   Humidity;
     int   Pressure;
@@ -42,6 +47,10 @@ typedef struct IoTDevice_t {
      "\"ObjectType\":\"%s\","      \
      "\"Version\":\"%s\","         \
      "\"ReportingDevice\":\"%s\"," \
+     "\"Latitude\":\"%6.3f\","     \
+     "\"Longitude\":\"%6.3f\","    \
+     "\"GPSTime\":\"%6.0f\","      \
+     "\"GPSDate\":\"%s\","         \
      "\"Temperature\":\"%.02f\","  \
      "\"Humidity\":\"%d\","        \
      "\"Pressure\":\"%d\","        \
@@ -89,6 +98,10 @@ DigitalOut   GREEN_led(LED3);
 
 const int    blink_interval = 500; //msec
 int          RED_state, BLUE_state, GREEN_state;
+
+/* create the GPS elements for example program */
+gps_data gdata; 
+bg96_gps gps;   
 
 #define GREEN       4  //0 0100 GREEN
 #define BLUE        2  //0 0010
@@ -186,11 +199,11 @@ int main(void)
     printf("\r\n");
     printf("The example program interacts with Azure IoTHub sending \r\n");
     printf("sensor data and receiving messeages (using ARM Mbed OS v5.x)\r\n");
-    printf("[using %s Environmental Sensor]\r\n", ENV_SENSOR);
+    printf("->using %s Environmental Sensor\r\n", ENV_SENSOR);
 #ifdef IOTHUBTRANSPORTHTTP_H
-    printf("[using HTTPS Transport Protocol]\r\n");
+    printf("->using HTTPS Transport Protocol\r\n");
 #else
-    printf("[using MQTT Transport Protocol]\r\n");
+    printf("->using MQTT Transport Protocol\r\n");
 #endif
     printf("\r\n");
 
@@ -198,6 +211,13 @@ int main(void)
        printf("Error initializing the platform\r\n");
        return -1;
        }
+
+    printf("[ start GPS ] ");
+    gps.gpsPower(true);
+    printf("Successful.\r\n[get GPS loc] ");
+    fflush(stdout);
+    gps.gpsLocation(&gdata);
+    printf("Latitude = %6.3f Longitude = %6.3f date=%s, time=%6.0f\n\n",gdata.lat,gdata.lon,gdata.date,gdata.utc);
 
 #if MBED_CONF_APP_IKSVERSION == 2
   XNucleoIKS01A2 *mems_expansion_board = XNucleoIKS01A2::instance(I2C_SDA, I2C_SCL, D4, D5);
@@ -249,6 +269,10 @@ char* makeMessage(IoTDevice* iotDev)
                             iotDev->ObjectType,
                             iotDev->Version,
                             iotDev->ReportingDevice,
+                            iotDev->lat,
+                            iotDev->lon,
+                            iotDev->gpstime,
+                            iotDev->gpsdate,
                             iotDev->Temperature,
                             iotDev->Humidity,
                             iotDev->Pressure,
@@ -378,10 +402,14 @@ void azure_task(void)
     iotDev->ReportingDevice = (char*)"STL496ZG-BG96";
     iotDev->TOD             = (char*)"";
     iotDev->Temperature     = 0.0;
+    iotDev->lat             = 0.0;
+    iotDev->lon             = 0.0;
+    iotDev->gpstime         = 0.0;
     iotDev->Humidity        = 0;
     iotDev->Pressure        = 0;
     iotDev->Tilt            = 0x2;
     iotDev->ButtonPress     = 0;
+    memset(iotDev->gpsdate,0x00,7);
 
     SET_LED(RED,LED_OFF);
     SET_LED(BLUE,LED_OFF);
@@ -390,6 +418,12 @@ void azure_task(void)
     while (runTest) {
         char*  msg;
         size_t msgSize;
+
+        gps.gpsLocation(&gdata);
+        iotDev->lat = gdata.lat;
+        iotDev->lon = gdata.lon;
+        iotDev->gpstime = gdata.utc;
+        memcpy(iotDev->gpsdate, gdata.date, 7);
 
 #if MBED_CONF_APP_IKSVERSION == 2
         hum_temp->get_temperature(&gtemp);           // get Temp
