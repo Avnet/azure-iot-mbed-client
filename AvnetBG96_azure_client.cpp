@@ -140,7 +140,7 @@ static void LED_task(void)
         else if( RED_state & LED_BLINK ) 
             RED_led = !RED_led;
 
-        Thread::wait(blink_interval);  //in msec
+        ThisThread::sleep_for(blink_interval);  //in msec
         }
 }
 
@@ -518,7 +518,7 @@ void azure_task(void)
                 printf("\n");
                 }
 #endif 
-        Thread::wait(5000);  //in msec
+        ThisThread::sleep_for(5000);  //in msec
         }
     free(iotDev);
     IoTHubClient_LL_Destroy(iotHubClientHandle);
