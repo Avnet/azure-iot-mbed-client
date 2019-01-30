@@ -78,9 +78,9 @@ typedef struct IoTDevice_t {
   #define ENV_SENSOR "NO"
 #endif
 
-static const char* connectionString = "HostName=XXXX;DeviceId=xxxx;SharedAccessKey=xxxx";
+static const char* connectionString = "HostName=XXX;DeviceId=XXX;SharedAccessKey=XXX;
  
-static const char* deviceId         = "xxxx"; /*must match the one on connectionString*/
+static const char* deviceId         = "XXX; /*must match the one on connectionString*/
 
 // to report F uncomment this #define CTOF(x)         (((double)(x)*9/5)+32)
 #define CTOF(x)         (x)
@@ -453,6 +453,7 @@ void azure_task(void)
             if( k > 3000 ) {
                 printf("User Requested Termination (held button for %d msec), exiting.\n",k);
                 runTest = false;
+                continue;
                 }
             else{
                 iotDev->ButtonPress = 1;
